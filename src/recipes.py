@@ -10,11 +10,13 @@ from typing import Optional
 class Recipe:
     """Represents an FFmpeg recipe/preset."""
     name: str
-    category: str  # video, audio, extract, resize, remux
+    category: str  # video, audio, extract, resize, remux, youtube, shortform
     extension: str
     ffmpeg_args: list[str]
     description: str = ""
     input_extensions: list[str] = field(default_factory=list)
+    max_duration_seconds: Optional[int] = None  # Platform duration limit
+    max_file_size_mb: Optional[int] = None  # Platform file size limit
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -421,6 +423,229 @@ REMUX_RECIPES = [
     ),
 ]
 
+# Short-form content recipes (vertical video for social media)
+SHORTFORM_RECIPES = [
+    # === Vertical Video Presets ===
+    Recipe(
+        name="TikTok/Reels (1080x1920)",
+        category="shortform",
+        extension=".mp4",
+        ffmpeg_args=[
+            "-vf", "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+            "-profile:v", "high", "-level", "4.2",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+            "-movflags", "+faststart"
+        ],
+        description="Full HD vertical 9:16 for TikTok and Instagram Reels",
+        input_extensions=[".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v"],
+        max_duration_seconds=600,
+        max_file_size_mb=287
+    ),
+    Recipe(
+        name="YouTube Shorts (720x1280)",
+        category="shortform",
+        extension=".mp4",
+        ffmpeg_args=[
+            "-vf", "scale=720:1280:force_original_aspect_ratio=decrease,pad=720:1280:(ow-iw)/2:(oh-ih)/2,setsar=1",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "22",
+            "-profile:v", "high", "-level", "4.0",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+            "-movflags", "+faststart"
+        ],
+        description="720p vertical for YouTube Shorts (max 60 sec)",
+        input_extensions=[".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v"],
+        max_duration_seconds=60
+    ),
+    Recipe(
+        name="Instagram/Facebook Stories (1080x1920)",
+        category="shortform",
+        extension=".mp4",
+        ffmpeg_args=[
+            "-vf", "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "22",
+            "-profile:v", "high", "-level", "4.2",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "128k", "-ar", "44100",
+            "-movflags", "+faststart"
+        ],
+        description="Optimized for Instagram and Facebook Stories",
+        input_extensions=[".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v"],
+        max_duration_seconds=60
+    ),
+    Recipe(
+        name="Vertical Compressed (Quick Draft)",
+        category="shortform",
+        extension=".mp4",
+        ffmpeg_args=[
+            "-vf", "scale=720:1280:force_original_aspect_ratio=decrease,pad=720:1280:(ow-iw)/2:(oh-ih)/2,setsar=1",
+            "-c:v", "libx264", "-preset", "fast", "-crf", "28",
+            "-profile:v", "main",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "96k", "-ar", "44100",
+            "-movflags", "+faststart"
+        ],
+        description="Fast encode, smaller file for drafts and previews",
+        input_extensions=[".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v"]
+    ),
+    # === Repurpose Horizontal to Vertical ===
+    Recipe(
+        name="Center Crop (16:9 to 9:16)",
+        category="shortform",
+        extension=".mp4",
+        ffmpeg_args=[
+            "-vf", "crop=ih*9/16:ih,scale=1080:1920,setsar=1",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+            "-profile:v", "high", "-level", "4.2",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+            "-movflags", "+faststart"
+        ],
+        description="Crop center of horizontal video to vertical",
+        input_extensions=[".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v"]
+    ),
+    Recipe(
+        name="Letterbox with Black Bars",
+        category="shortform",
+        extension=".mp4",
+        ffmpeg_args=[
+            "-vf", "scale=1080:-2,pad=1080:1920:0:(oh-ih)/2:black,setsar=1",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+            "-profile:v", "high", "-level", "4.2",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+            "-movflags", "+faststart"
+        ],
+        description="Fit horizontal video in vertical frame with black bars",
+        input_extensions=[".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v"]
+    ),
+    Recipe(
+        name="Blur Background Fill",
+        category="shortform",
+        extension=".mp4",
+        ffmpeg_args=[
+            "-filter_complex",
+            "[0:v]split[bg][fg];"
+            "[bg]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=20:5,setsar=1[blurred];"
+            "[fg]scale=1080:-2[scaled];"
+            "[blurred][scaled]overlay=(W-w)/2:(H-h)/2[outv]",
+            "-map", "[outv]", "-map", "0:a?",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+            "-profile:v", "high", "-level", "4.2",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+            "-movflags", "+faststart"
+        ],
+        description="Blurred background fill (popular social media effect)",
+        input_extensions=[".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v"]
+    ),
+    Recipe(
+        name="Split Screen Vertical (Top/Bottom)",
+        category="shortform",
+        extension=".mp4",
+        ffmpeg_args=[
+            "-filter_complex",
+            "[0:v]split[top][bottom];"
+            "[top]crop=iw:ih/2:0:0,scale=1080:960[t];"
+            "[bottom]crop=iw:ih/2:0:ih/2,scale=1080:960[b];"
+            "[t][b]vstack[outv]",
+            "-map", "[outv]", "-map", "0:a?",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+            "-profile:v", "high", "-level", "4.2",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+            "-movflags", "+faststart"
+        ],
+        description="Split video into top/bottom vertical stack",
+        input_extensions=[".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v"]
+    ),
+    # === Platform-Specific Exports ===
+    Recipe(
+        name="TikTok Export (optimized)",
+        category="shortform",
+        extension=".mp4",
+        ffmpeg_args=[
+            "-vf", "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+            "-profile:v", "high", "-level", "4.2",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+            "-movflags", "+faststart",
+            "-fs", "287M"
+        ],
+        description="TikTok optimized (max 10 min, 287MB limit)",
+        input_extensions=[".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v"],
+        max_duration_seconds=600,
+        max_file_size_mb=287
+    ),
+    Recipe(
+        name="Instagram Reels Export",
+        category="shortform",
+        extension=".mp4",
+        ffmpeg_args=[
+            "-vf", "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+            "-profile:v", "high", "-level", "4.2",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+            "-movflags", "+faststart"
+        ],
+        description="Instagram Reels optimized (max 90 sec)",
+        input_extensions=[".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v"],
+        max_duration_seconds=90
+    ),
+    Recipe(
+        name="YouTube Shorts Export",
+        category="shortform",
+        extension=".mp4",
+        ffmpeg_args=[
+            "-vf", "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "18",
+            "-profile:v", "high", "-level", "4.2",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "256k", "-ar", "48000",
+            "-movflags", "+faststart"
+        ],
+        description="YouTube Shorts optimized (max 60 sec, high quality)",
+        input_extensions=[".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v"],
+        max_duration_seconds=60
+    ),
+    Recipe(
+        name="Snapchat Spotlight",
+        category="shortform",
+        extension=".mp4",
+        ffmpeg_args=[
+            "-vf", "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "22",
+            "-profile:v", "high", "-level", "4.2",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+            "-movflags", "+faststart"
+        ],
+        description="Snapchat Spotlight optimized (max 60 sec)",
+        input_extensions=[".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v"],
+        max_duration_seconds=60
+    ),
+    Recipe(
+        name="Facebook Reels",
+        category="shortform",
+        extension=".mp4",
+        ffmpeg_args=[
+            "-vf", "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+            "-profile:v", "high", "-level", "4.2",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+            "-movflags", "+faststart"
+        ],
+        description="Facebook Reels optimized (max 90 sec)",
+        input_extensions=[".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v"],
+        max_duration_seconds=90
+    ),
+]
+
 
 # All built-in recipes
 BUILTIN_RECIPES = {
@@ -430,6 +655,7 @@ BUILTIN_RECIPES = {
     "resize": RESIZE_RECIPES,
     "remux": REMUX_RECIPES,
     "youtube": YOUTUBE_RECIPES,
+    "shortform": SHORTFORM_RECIPES,
 }
 
 

@@ -22,6 +22,7 @@ MAIN_MENU_OPTIONS = [
     ("Resize / compress", "resize"),
     ("Remux (no re-encode)", "remux"),
     ("YouTube", "youtube"),
+    ("Short-form content", "shortform"),
     ("Logs / status", "status"),
     ("Help", "help"),
     ("Exit", "exit"),
@@ -311,6 +312,58 @@ engineers who believe in open source.
 {Fore.CYAN}────────────────────────────────────────────────────────────────────{Style.RESET_ALL}
 """
     },
+    "shortform": {
+        "title": "Short-form Content",
+        "content": f"""
+{Fore.CYAN}╔══════════════════════════════════════════════════════════════════╗
+║                    SHORT-FORM CONTENT                             ║
+╚══════════════════════════════════════════════════════════════════╝{Style.RESET_ALL}
+
+{Fore.GREEN}═══ VERTICAL VIDEO PRESETS ═══{Style.RESET_ALL}
+
+{Fore.YELLOW}TikTok/Reels (1080x1920){Style.RESET_ALL}
+  Full HD vertical format. Works for TikTok, Instagram Reels,
+  and most social platforms. Max 10 minutes for TikTok.
+
+{Fore.YELLOW}YouTube Shorts (720x1280){Style.RESET_ALL}
+  Optimized for YouTube Shorts. 720p saves bandwidth while
+  maintaining quality. Max 60 seconds.
+
+{Fore.YELLOW}Instagram/Facebook Stories{Style.RESET_ALL}
+  Optimized encoding for Stories format. Max 60 seconds.
+
+{Fore.YELLOW}Vertical Compressed (Quick Draft){Style.RESET_ALL}
+  Fast encoding for previews and drafts. Smaller file size.
+
+{Fore.GREEN}═══ REPURPOSE HORIZONTAL TO VERTICAL ═══{Style.RESET_ALL}
+
+{Fore.YELLOW}Center Crop (16:9 to 9:16){Style.RESET_ALL}
+  Crops the center of your horizontal video to fill vertical
+  frame. Best when the subject is centered in frame.
+
+{Fore.YELLOW}Letterbox with Black Bars{Style.RESET_ALL}
+  Fits your entire video with black bars top and bottom.
+  Preserves full content but has empty space.
+
+{Fore.YELLOW}Blur Background Fill{Style.RESET_ALL}
+  The popular "blurred background" effect! Shows your video
+  centered with a blurred, zoomed version behind it.
+
+{Fore.YELLOW}Split Screen Vertical{Style.RESET_ALL}
+  Splits your video into top/bottom halves stacked vertically.
+  Great for comparisons or before/after content.
+
+{Fore.GREEN}═══ PLATFORM LIMITS ═══{Style.RESET_ALL}
+
+  Platform            Duration    File Size
+  ─────────────────────────────────────────────
+  TikTok              10 min      287 MB
+  Instagram Reels     90 sec      4 GB
+  YouTube Shorts      60 sec      -
+  Snapchat Spotlight  60 sec      -
+  Facebook Reels      90 sec      4 GB
+"""
+    },
     "tips": {
         "title": "Tips & Tricks",
         "content": f"""
@@ -385,7 +438,7 @@ def display_banner() -> None:
     """Display the MONICA banner."""
     print(f"""
 {Fore.CYAN}╔══════════════════════════════════════════╗
-║  {Fore.WHITE}MONICA{Fore.CYAN} - FFmpeg Interactive CLI Tool   ║
+║  {Fore.WHITE}MONICA{Fore.CYAN} - FFmpeg Interactive CLI Tool    ║
 ╚══════════════════════════════════════════╝{Style.RESET_ALL}
 """)
 
@@ -537,6 +590,7 @@ def handle_help() -> None:
             questionary.Choice("Menu Guide - What does each option do?", "menu_guide"),
             questionary.Choice("Video Formats - Containers, codecs, and recommendations", "video_formats"),
             questionary.Choice("Audio Formats - MP3, FLAC, AAC and more explained", "audio_formats"),
+            questionary.Choice("Short-form Content - TikTok, Reels, Shorts, and vertical video", "shortform"),
             questionary.Choice("Tips & Tricks - Get the most out of MONICA", "tips"),
             questionary.Choice("Dedication to FFmpeg - The heroes behind the magic", "ffmpeg_tribute"),
             questionary.Choice("<- Back to main menu", "back"),
@@ -601,7 +655,7 @@ def run_menu_loop(
         elif action == "help":
             handle_help()
 
-        elif action in ("video", "audio", "extract", "resize", "remux", "youtube"):
+        elif action in ("video", "audio", "extract", "resize", "remux", "youtube", "shortform"):
             handle_conversion(action, ffmpeg_path, import_dir, export_dir)
 
         else:

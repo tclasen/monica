@@ -55,12 +55,35 @@ Convert video
 Convert audio
 Extract audio
 Resize / compress
+Short-form content
 Remux (no re-encode)
 Logs / status
 Exit
 ```
 
 Each menu item opens a submenu if needed.
+
+### Short-form Content Submenu
+
+```
+TikTok / Reels (1080x1920)
+YouTube Shorts (720x1280)
+Instagram / Facebook Stories
+Vertical compressed (draft)
+───────────────────────────
+Crop horizontal to vertical (center)
+Letterbox (black bars)
+Split screen vertical
+Blur background fill
+───────────────────────────
+TikTok export (≤10 min, 287MB)
+Instagram Reels export (≤90 sec)
+YouTube Shorts export (≤60 sec)
+Snapchat Spotlight export
+Facebook Reels export
+───────────────────────────
+Back to main menu
+```
 
 ---
 
@@ -109,6 +132,7 @@ video_20260108_143210_mp4_converted.mp4
 * Audio conversion
 * Audio extraction
 * Resize / compress
+* Short-form content (vertical video for TikTok, Reels, Shorts)
 * Remux (container change, no re-encode)
 
 ---
