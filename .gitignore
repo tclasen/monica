@@ -37,6 +37,7 @@ env/
 import/
 export/
 logs/
+src/__pycache__/
 
 # FFmpeg (auto-downloaded)
 ffmpeg/
@@ -49,3 +50,9 @@ custom_recipes.json
 Thumbs.db
 
 logs/monica.log
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.pytest_cache
