@@ -37,7 +37,7 @@ env/
 import/
 export/
 logs/
-src/__pycache__/
+src/monica/__pycache__/
 
 # FFmpeg (auto-downloaded)
 ffmpeg/

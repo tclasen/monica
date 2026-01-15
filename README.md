@@ -84,7 +84,7 @@ monica/
 │   ├── introduction.md # Project specification
 │   ├── usage.md        # User guide
 │   └── recipes.md      # Recipe documentation
-└── src/
+└── src/monica/
     ├── __init__.py
     ├── ffmpeg_manager.py   # FFmpeg detection/download
     ├── menu.py             # Interactive menus

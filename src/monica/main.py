@@ -11,9 +11,9 @@ from pathlib import Path
 from colorama import init, Fore, Style
 init()
 
-from src.ffmpeg_manager import ensure_ffmpeg
-from src.logger import get_logger
-from src.menu import run_menu_loop
+from monica.ffmpeg_manager import ensure_ffmpeg
+from monica.logger import get_logger
+from monica.menu import run_menu_loop
 
 
 def setup_directories(base_dir: Path) -> tuple[Path, Path, Path]:
