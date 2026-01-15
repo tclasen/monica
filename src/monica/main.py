@@ -37,7 +37,7 @@ def setup_directories(base_dir: Path) -> tuple[Path, Path, Path]:
 
 def main() -> int:
     """Main entry point."""
-    base_dir = Path(__file__).parent.resolve()
+    base_dir = Path().resolve()
 
     # Setup directories
     import_dir, export_dir, logs_dir = setup_directories(base_dir)
